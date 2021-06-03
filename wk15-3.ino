@@ -1,4 +1,4 @@
-int loopDelay=60;
+int loopDelay=20;
 int tones[] = {
   0, 185, 207, 233, 247, 277, 311, 349, 370
 };
@@ -6,10 +6,12 @@ int len=0;
 int melody[128][2]={};
 
 void Play(){
+  int noteDuration=0;
+  int pauseBetweenNotes=0;
 	for (int i = 0; i < len; i++) {
-   	  int noteDuration = melody[i][1]*loopDelay;
+   	  noteDuration = melody[i][1]*loopDelay*1.5;
       tone(10, melody[i][0], noteDuration);
-      int pauseBetweenNotes = noteDuration*1.2;
+      pauseBetweenNotes = noteDuration+5*loopDelay;
       delay(pauseBetweenNotes);
       noTone(10);
     }
@@ -35,13 +37,14 @@ void loop() {
     recording=false;
     len=128;
   }
-  if(recording){
-    int btns=0;
-    for(byte i=2;i<10;i++){
-      btns += buttonState = digitalRead(i);
+
+  int btns=0;
+  for(byte i=2;i<10;i++){
+    btns += buttonState = digitalRead(i);
       
-      if(buttonState==1)continue;
-      
+    if(buttonState==1)continue;
+    tone(10, tones[i-1], 200);
+    if(recording){
       if(melody[recordIndex][0]==tones[i-1]){
       	melody[recordIndex][1]++;
       }else{
@@ -50,16 +53,18 @@ void loop() {
         melody[recordIndex][1]=0;
       }
     }
-    if(btns==8 && recordIndex !=0){
-      if(melody[recordIndex][0]==0){
-      	melody[recordIndex][1]++;
-      }else{
-        recordIndex++;
-        melody[recordIndex][0]=0;
-        melody[recordIndex][1]=0;
-      }
+  }
+  if(btns==8 && recordIndex !=0){
+    if(melody[recordIndex][0]==0){
+      melody[recordIndex][1]++;
+    }else{
+      recordIndex++;
+      melody[recordIndex][0]=0;
+      melody[recordIndex][1]=0;
     }
   }
+    
+
   
   
   recordBtnLastState = recordBtnCurrentState;
@@ -72,6 +77,7 @@ void loop() {
       melody[recordIndex][0]=0;
     }else{
       len=recordIndex+1;
+      noTone(10);
       Play();
     }
   }
